@@ -1,0 +1,3 @@
+[Task] Generate patient demographics aligned with prior stats.
+[Retrieval] PRIOR: {mortality_rate, top_dx_list}
+[Output] LANGUAGE, RELIGION, MARITAL_STATUS, ETHNICITY, INSURANCE, HOSPITAL_EXPIRE_FLAG

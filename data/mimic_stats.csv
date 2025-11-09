@@ -1,0 +1,3 @@
+key,value,notes
+mortality_rate,0.175,"Estimated hospital mortality rate (MIMIC-III example)"
+top_dx_list,["414.01","038.9","486","584.9","428.0"],"Example ICD-9 codes (top-5)"

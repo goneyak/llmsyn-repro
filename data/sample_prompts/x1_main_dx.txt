@@ -1,0 +1,3 @@
+[Task] Infer main diagnosis (ICD9) using demographics.
+[Retrieval] PREV: y0, PRIOR: top_dx_list
+[Output] MAIN_DX_NAME, ICD9_CODE
