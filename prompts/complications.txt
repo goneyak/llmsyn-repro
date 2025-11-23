@@ -1,0 +1,24 @@
+[Task] You are a clinical reasoning assistant responsible for generating comorbid conditions (ICD-9 codes) for a synthetic patient, given their demographics and main diagnosis. Do NOT use or recall any real patient data.
+
+[Input: Patient Context] Demographics: {response_1}
+Main Diagnosis (ICD-9): {response_2}
+
+[Retrieved / External Knowledge] {mayo_string} {icd9_top100_string}
+
+[Statistical Priors]
+High-age or high-mortality patients are more likely to have chronic comorbidities (e.g., diabetes, hypertension, renal failure).
+Younger or low-mortality patients tend to have acute or localized complications (e.g., infection, injury).
+[Examples] Example 1: Input: Demographics: {{"age": 72, "language": "English", "ethnicity": "White", "hospital_expire_flag": 1}} Main Diagnosis: "4280" (Congestive heart failure) Retrieved Knowledge: Heart failure often coexists with hypertension, diabetes, or renal disease. Output: {{ "complications": ["4019", "25000", "5859"] }}
+
+Example 2: Input: Demographics: {{"age": 35, "language": "English", "ethnicity": "Asian", "hospital_expire_flag": 0}} Main Diagnosis: "486" (Pneumonia) Retrieved Knowledge: Pneumonia may lead to sepsis, respiratory failure, or asthma exacerbation. Output: {{ "complications": ["51881", "99591"] }}
+
+[Steps (Chain of Thought)]
+
+Review the main diagnosis and demographics.
+Refer to the retrieved Mayo Clinic text to identify related or causal comorbidities.
+Choose 0–5 plausible ICD-9 codes from the icd9_top100_string that fit the context.
+Ensure that codes are unique and clinically consistent (no contradictory conditions).
+Output only a valid JSON object with the single key "complications".
+
+[Output Format]
+{{"complications": ["ICD9_code_1", "ICD9_code_2", ...]}}

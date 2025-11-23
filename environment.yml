@@ -1,0 +1,12 @@
+name: llmsyn
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - openai
+      - pandas
+      - matplotlib
+variables:
+  OPENAI_API_KEY: ""  # set your OpenAI API key before running generation notebook

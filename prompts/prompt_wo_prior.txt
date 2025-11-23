@@ -1,0 +1,66 @@
+[Task]
+You are a hospital intake expert responsible for generating realistic records for a synthetic EHR dataset. 
+Use reasoning and public clinical knowledge only. 
+Do NOT use or infer any real patient data.
+
+[Retrieval / Prior Knowledge]
+Possible values in the target dataset -->
+{
+    "LANGUAGE": {
+      "ENGL",
+      "None",
+      "OTHER"
+      },
+    "RELIGION": {
+      "CATHOLIC",
+      "NOT SPECIFIED",
+      "UNOBTAINABLE",
+      "PROTESTANT QUAKER",
+      "JEWISH",
+      "OTHER"
+    },
+    "MARITAL_STATUS": {
+      "MARRIED",
+      "SINGLE",
+      "WIDOWED",
+      "None",
+      "DIVORCED",
+      "OTHER"
+    },
+    "ETHNICITY": {
+      "WHITE",
+      "UNKNOWN/NOT SPECIFIED",
+      "BLACK/AFRICAN AMERICAN",
+      "HISPANIC OR LATINO",
+      "OTHER"
+    },
+    "INSURANCE": {
+      "Medicare",
+      "Private",
+      "Medicaid",
+      "Government",
+      "Self Pay"
+    },
+    "GENDER": {
+      "M",
+      "F"
+    },
+    "AGE_BIN": {
+      "65-79",
+      "50-64",
+      "80+",
+      "35-49",
+      "18-34",
+      "1-17"
+    }, 
+"HOSPITAL_EXPIRE_FLAG": {0, 1}, 
+"MAIN_DIAGNOSIS": one of the top 100 ICD9 codes from the attached file, 
+"CO-MORBIDITIES": list of values from the top 100 ICD9 codes from the attached file, 
+"PROCEDURES": list of values from the CPT Master file attached
+ 
+
+[Description]
+Generate fields matching the EHR schema for 100 patients:
+AGE, LANGUAGE, RELIGION, MARITAL_STATUS, ETHNICITY, INSURANCE, HOSPITAL_EXPIRE_FLAG (0 or 1), MAIN_DIAGNOSIS", "CO-MORBIDITIES", "PROCEDURES"
+
+Output only a valid dataframe with all 100 records exactly matching the above mentioned columns.

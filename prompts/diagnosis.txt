@@ -1,0 +1,20 @@
+[Task] You are a professional medical coder responsible for assigning a primary diagnosis (ICD-9 code) to a synthetic patient based on their demographics. Use reasoning and public medical knowledge from Mayo Clinic. Use closest matching disease from Mayo clinic. Alternatively, refer to the pre-downloaded information from Mayo Clinic about the top 10 icd-9 codes from the file names mayo.json Do NOT use any real patient records.
+
+[Input: Demographic Information] {response_1}
+
+[Retrieval / Prior Knowledge]
+Refer to the attached file icd9_top100.csv and use the 10 most common diagnoses in the target hospital dataset. Do no use codes outside this list.
+
+[Examples] Example 1: Input demographics: {"age": 45, "language": "English", "ethnicity": "White", "hospital_expire_flag": 0} Reasoning: Middle-aged, low mortality → likely acute but non-terminal conditions. Output: {"main_diagnosis": "25000"} # Diabetes mellitus without mention of complication
+Example 2: Input demographics: {"age": 79, "language": "Spanish", "ethnicity": "Hispanic", "hospital_expire_flag": 1} Reasoning: Elderly with high mortality → likely respiratory or circulatory disease. Output: {"main_diagnosis": "4280"} # Congestive heart failure, unspecified
+
+[Steps (Chain of Thought)]
+Review demographics.
+Select a plausible ICD-9 code from the provided Top-10 list.
+Older → chronic or high-risk diseases.
+Younger → metabolic, injury, pregnancy, or elective conditions.
+Ensure the diagnosis aligns with general hospital admission patterns.
+Output only valid JSON with the single key main_diagnosis.
+
+[Output Format]
+{"main_diagnosis": "#####"}
