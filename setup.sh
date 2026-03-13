@@ -10,7 +10,7 @@ conda activate llmsyn
 
 echo "[3/3] Environment check"
 python --version
-python -c "import pandas, openai, matplotlib; print('Dependencies are available.')"
+python -c "import pandas, openai, matplotlib, numpy, scipy, sklearn; print('Dependencies are available.')"
 
 cat <<'EOF'
 

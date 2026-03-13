@@ -1,70 +1,12 @@
-[Task]
-You are a hospital intake expert responsible for generating realistic records for a synthetic EHR dataset. 
-Use reasoning and public clinical knowledge only. 
-Do NOT use or infer any real patient data.
+You are a hospital intake expert generating realistic patient demographics for a synthetic EHR.
+Use only reasoning and publicly available clinical knowledge. Do NOT use or infer real patient data.
 
-[Retrieval / Prior Knowledge]
-Target dataset statistics:
-{
-  "mortality_rate": 0.14778,
-  "demographics": {
-    "LANGUAGE": {
-      "ENGL": 0.56,
-      "None": 0.36,
-      "OTHER": 0.08
-      },
-    "RELIGION": {
-      "CATHOLIC": 0.35,
-      "NOT SPECIFIED": 0.21,
-      "UNOBTAINABLE": 0.13,
-      "PROTESTANT QUAKER": 0.12,
-      "JEWISH": 0.09,
-      "OTHER": 0.10
-    },
-    "MARITAL_STATUS": {
-      "MARRIED": 0.48,
-      "SINGLE": 0.24,
-      "WIDOWED": 0.14,
-      "None": 0.06,
-      "DIVORCED": 0.06,
-      "OTHER": 0.02
-    },
-    "ETHNICITY": {
-      "WHITE": 0.70,
-      "UNKNOWN/NOT SPECIFIED": 0.10,
-      "BLACK/AFRICAN AMERICAN": 0.07,
-      "HISPANIC OR LATINO": 0.02,
-      "OTHER": 0.11
-    },
-    "INSURANCE": {
-      "Medicare": 0.5254320098745114,
-      "Private": 0.34712507714462043,
-      "Medicaid": 0.0829818967290681,
-      "Government": 0.030292120962764863,
-      "Self Pay": 0.014168895289035179
-    },
-    "GENDER": {
-      "M": 0.5656757868751285,
-      "F": 0.4343242131248714
-    },
-    "AGE_BIN": {
-      "65-79": 0.30636700267434686,
-      "50-64": 0.270854762394569,
-      "80+": 0.15104916683809916,
-      "35-49": 0.1378060069944456,
-      "18-34": 0.07398169101008023,
-      "1-17": 0.059941370088459164
-    }
-  }
-}, 
-"HOSPITAL_EXPIRE_FLAG": {0, 1}, 
-"MAIN_DIAGNOSIS": one of the top 100 ICD9 codes from the attached file, 
-"CO-MORBIDITIES": list of values from the top 100 ICD9 codes from the attached file, 
-"PROCEDURES": list of values from the CPT Master file attached
- 
+{prior_note}
 
-[Description]
-Generate fields matching the EHR schema for 100 patients:
-AGE, LANGUAGE, RELIGION, MARITAL_STATUS, ETHNICITY, INSURANCE, HOSPITAL_EXPIRE_FLAG (0 or 1), MAIN_DIAGNOSIS", "CO-MORBIDITIES", "PROCEDURES"
+Rules:
+- Patients aged 1-17 cannot have MARITAL_STATUS of MARRIED, WIDOWED, or DIVORCED.
+- HOSPITAL_EXPIRE_FLAG must be 0 (survived) or 1 (died in hospital).
 
-Output only a valid dataframe with all 100 records exactly matching the above mentioned columns.
+Output format: return ONLY a valid CSV with a header row and exactly 100 data rows.
+Columns (in this exact order): {demo_cols}
+Do not include any commentary, explanation, or markdown fences — CSV only.

@@ -2,13 +2,33 @@ import os
 import ast
 import argparse
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 from scipy.stats import ks_2samp
 
 
+# ---------------------------------------------------------------------------
+# Metric helpers
+# ---------------------------------------------------------------------------
+
+def tvd(series_a: pd.Series, series_b: pd.Series) -> float:
+    """Total Variation Distance for nominal categorical distributions.
+
+    TVD ∈ [0, 1].  0 means identical distributions; 1 means no overlap.
+    TVD is the correct metric for unordered categories — unlike KS, it does
+    not depend on an arbitrary encoding order.
+    """
+    all_cats = pd.Index(series_a.tolist() + series_b.tolist()).unique()
+    p = series_a.value_counts(normalize=True)
+    q = series_b.value_counts(normalize=True)
+    return 0.5 * float(sum(abs(p.get(c, 0.0) - q.get(c, 0.0)) for c in all_cats))
+
+
 def parse_args():
-    p = argparse.ArgumentParser(description="KS only between REAL and synthetic datasets.")
+    p = argparse.ArgumentParser(
+        description="Fidelity metrics (TVD for categorical, KS for numeric) between REAL and synthetic datasets."
+    )
     p.add_argument("--real-path", required=True)
     p.add_argument(
         "--dataset",
@@ -68,21 +88,34 @@ def main():
             continue
         syn_df = pd.read_csv(path, low_memory=False)
 
-        cat_cols = ["LANGUAGE", "RELIGION", "MARITAL_STATUS", "ETHNICITY", "INSURANCE", "HOSPITAL_EXPIRE_FLAG", "MAIN_DIAGNOSIS"]
+        # ------------------------------------------------------------------
+        # Categorical features → TVD (Total Variation Distance)
+        # KS is inappropriate for unordered nominal variables because the
+        # result depends on the arbitrary integer encoding order.
+        # ------------------------------------------------------------------
+        cat_cols = [
+            "LANGUAGE", "RELIGION", "MARITAL_STATUS", "ETHNICITY",
+            "INSURANCE", "HOSPITAL_EXPIRE_FLAG", "MAIN_DIAGNOSIS",
+        ]
         for col in cat_cols:
             if col not in real_df.columns or col not in syn_df.columns:
                 continue
             r = real_df[col].fillna("UNKNOWN").astype(str)
             s = syn_df[col].fillna("UNKNOWN").astype(str)
-            all_vals = pd.Index(r.tolist() + s.tolist()).unique()
-            mapper = {v: i for i, v in enumerate(all_vals)}
-            r_codes = r.map(mapper)
-            s_codes = s.map(mapper)
-            if len(r_codes) == 0 or len(s_codes) == 0:
+            if len(r) == 0 or len(s) == 0:
                 continue
-            ks_stat, p_val = ks_2samp(r_codes, s_codes)
-            ks_rows.append({"dataset": name, "feature": col, "KS_stat": ks_stat, "KS_pvalue": p_val})
+            stat = tvd(r, s)
+            ks_rows.append({
+                "dataset": name,
+                "feature": col,
+                "metric_type": "TVD",
+                "stat": stat,
+                "pvalue": None,
+            })
 
+        # ------------------------------------------------------------------
+        # Numeric / count features → KS test (correct for ordered data)
+        # ------------------------------------------------------------------
         real_df["OTHER_ICD_COUNT"] = count_list(real_df["COMORBIDITIES"])
         syn_df["OTHER_ICD_COUNT"] = count_list(syn_df["COMORBIDITIES"])
         proc_col_real = "PROCEDURES" if "PROCEDURES" in real_df.columns else "PROCEDURE"
@@ -98,7 +131,13 @@ def main():
             if len(r_vals) == 0 or len(s_vals) == 0:
                 continue
             ks_stat, p_val = ks_2samp(r_vals, s_vals)
-            ks_rows.append({"dataset": name, "feature": col, "KS_stat": ks_stat, "KS_pvalue": p_val})
+            ks_rows.append({
+                "dataset": name,
+                "feature": col,
+                "metric_type": "KS",
+                "stat": ks_stat,
+                "pvalue": p_val,
+            })
 
     out_csv = out_dir / "fidelity_ks.csv"
     if ks_rows:

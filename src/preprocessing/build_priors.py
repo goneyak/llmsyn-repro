@@ -70,14 +70,9 @@ def compute_demo(demo_df):
     }
     return demographics
 
-def compute_mortality(admissions_df):
-    """patient-level mortality by last admission"""
-    last = (
-        admissions_df.sort_values(["SUBJECT_ID", "ADMITTIME"])
-                     .groupby("SUBJECT_ID", as_index=False)
-                     .last()
-    )
-    rate = (last["HOSPITAL_EXPIRE_FLAG"] == 1).mean()
+def compute_mortality(last_admissions: pd.DataFrame) -> float:
+    """Patient-level in-hospital mortality rate using pre-computed last-admission rows."""
+    rate = (last_admissions["HOSPITAL_EXPIRE_FLAG"] == 1).mean()
     return float(rate)
 
 # ---------- ICD-9 TOP100 (excluding newborn) ----------
@@ -90,8 +85,8 @@ icd_counts.to_csv(icd_path, index=False)
 
 # ---------- PRIOR JSON ----------
 prior = {
-    "mortality_rate": compute_mortality(admissions),
-    "top100_icd9_path": str(icd_path),
+    "mortality_rate": compute_mortality(last_admit),
+    "top100_icd9_path": str(icd_path.relative_to(BASE_DIR)),
     "demographics": compute_demo(demo),
     "cohort": "no_newborn_filter_first_admission",
 }

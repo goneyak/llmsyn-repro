@@ -64,7 +64,6 @@ if __name__ == "__main__":
         y_test = y_real[test_idx]
 
         rows.append(run_rf("REAL_train_REAL_test", X_train, y_train, X_test, y_test, seed))
-        rows.append(run_rf("REAL_match_train_REALsub_test_REAL", X_train, y_train, X_test, y_test, seed))
 
         for name, (x_path, y_path) in syn_files.items():
             if not (os.path.exists(x_path) and os.path.exists(y_path)):

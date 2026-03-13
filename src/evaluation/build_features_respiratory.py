@@ -98,17 +98,24 @@ def build_features(csv_path: str, out_prefix: str):
 
 
 if __name__ == "__main__":
+    _base = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--input",
-        default="data/processed/real_mimic.csv",
+        default=str(_base / "data" / "processed" / "real_mimic.csv"),
         help="Input flat CSV (real or synthetic)",
     )
     parser.add_argument(
         "--out-prefix",
-        default="../outputs/eval/real_resp",
-        help="Prefix for output files",
+        default=str(_base / "outputs" / "eval" / "real_resp"),
+        help="Prefix for output files (directory will be created if needed)",
     )
     args = parser.parse_args()
-
-    build_features(args.input, args.out_prefix)
+    # Resolve relative paths from repo root so the script works from any cwd.
+    input_path = Path(args.input)
+    if not input_path.is_absolute():
+        input_path = _base / input_path
+    out_prefix = args.out_prefix
+    if not Path(out_prefix).is_absolute():
+        out_prefix = str(_base / out_prefix)
+    build_features(str(input_path), out_prefix)

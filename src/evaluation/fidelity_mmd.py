@@ -62,18 +62,33 @@ def first_item(col):
     return col.apply(_first)
 
 
-def gaussian_kernel_matrix(X, Y, sigma=1.0):
-    X_norm = np.sum(X ** 2, axis=1).reshape(-1, 1)
-    Y_norm = np.sum(Y ** 2, axis=1).reshape(1, -1)
-    dist_sq = X_norm + Y_norm - 2 * X.dot(Y.T)
-    return np.exp(-dist_sq / (2 * sigma ** 2))
+def gaussian_kernel_mean(X: np.ndarray, Y: np.ndarray, sigma: float = 1.0, chunk: int = 1000) -> float:
+    """Compute the mean of the Gaussian kernel matrix K(X, Y) in row-blocks.
+
+    Processing in chunks avoids materialising an n×m matrix in memory
+    (the naive approach peaks at n×m×8 bytes, which exceeds available RAM
+    when n=m=5000).  This version uses O(chunk × m) memory instead.
+    """
+    total = 0.0
+    count = 0
+    denom = 2.0 * sigma ** 2
+    for i in range(0, len(X), chunk):
+        Xi = X[i : i + chunk]
+        Xi_sq = np.sum(Xi ** 2, axis=1, keepdims=True)          # (c, 1)
+        Y_sq = np.sum(Y ** 2, axis=1, keepdims=True).T           # (1, m)
+        dist_sq = Xi_sq + Y_sq - 2.0 * Xi.dot(Y.T)              # (c, m)
+        total += float(np.exp(-dist_sq / denom).sum())
+        count += Xi.shape[0] * Y.shape[0]
+    return total / count
 
 
-def mmd2_gaussian(X, Y, sigma=1.0):
-    K_xx = gaussian_kernel_matrix(X, X, sigma)
-    K_yy = gaussian_kernel_matrix(Y, Y, sigma)
-    K_xy = gaussian_kernel_matrix(X, Y, sigma)
-    return float(K_xx.mean() + K_yy.mean() - 2 * K_xy.mean())
+def mmd2_gaussian(X: np.ndarray, Y: np.ndarray, sigma: float = 1.0) -> float:
+    """Unbiased-style MMD² via chunked Gaussian kernel means."""
+    return (
+        gaussian_kernel_mean(X, X, sigma)
+        + gaussian_kernel_mean(Y, Y, sigma)
+        - 2.0 * gaussian_kernel_mean(X, Y, sigma)
+    )
 
 
 def main():
@@ -83,7 +98,6 @@ def main():
     if not out_dir.is_absolute():
         out_dir = base_dir / out_dir
     os.makedirs(out_dir, exist_ok=True)
-    rng = np.random.RandomState(args.seed)
 
     datasets = {}
     for item in args.dataset:
@@ -96,9 +110,12 @@ def main():
     real_path = Path(args.real_path)
     if not real_path.is_absolute():
         real_path = base_dir / real_path
-    real_df = pd.read_csv(real_path, low_memory=False)
-    if args.sample_size is not None and len(real_df) > args.sample_size:
-        real_df = real_df.sample(n=args.sample_size, random_state=rng)
+    real_df_full = pd.read_csv(real_path, low_memory=False)
+    # Use a fixed integer seed for EVERY synthetic dataset so the real-data
+    # sample is identical across all comparisons — essential for a fair MMD
+    # ranking.  Do NOT advance a shared RNG state between datasets.
+    if args.sample_size is not None and len(real_df_full) > args.sample_size:
+        real_df_full = real_df_full.sample(n=args.sample_size, random_state=args.seed)
 
     mmd_rows = []
     for name, path in datasets.items():
@@ -106,8 +123,11 @@ def main():
             continue
 
         syn_df = pd.read_csv(path, low_memory=False)
+        # Each dataset gets its own fresh sample from the full real DataFrame
+        # so comparisons are fair regardless of dataset iteration order.
+        real_df = real_df_full.copy()
         if args.sample_size is not None and len(syn_df) > args.sample_size:
-            syn_df = syn_df.sample(n=args.sample_size, random_state=rng)
+            syn_df = syn_df.sample(n=args.sample_size, random_state=args.seed)
 
         proc_col_real = "PROCEDURES" if "PROCEDURES" in real_df.columns else "PROCEDURE"
         proc_col_syn = "PROCEDURES" if "PROCEDURES" in syn_df.columns else "PROCEDURE"

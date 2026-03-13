@@ -7,6 +7,9 @@ dependencies:
   - pip:
       - openai
       - pandas
+      - numpy
+      - scipy
+      - scikit-learn
       - matplotlib
 variables:
   OPENAI_API_KEY: ""  # set your OpenAI API key before running generation scripts

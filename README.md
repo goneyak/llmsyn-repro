@@ -19,9 +19,11 @@ All commands below are intended to run from the repository root:
 
 ## Synthetic Variants
 
-- `full`: generation with prior guidance.
-- `prior`: generation with prior guidance (same prior-conditioned prompting behavior as `full` in current implementation).
-- `base`: generation without priors.
+- `full`: prior-guided with **explicit frequency distributions** (demographic rates from `prior.json`).
+- `prior`: prior-guided with **vocabulary constraints only** (allowed category values, no frequency target).
+- `base`: **no prior knowledge** — model uses general clinical reasoning freely.
+
+This gives three meaningfully different points on the prior-guidance spectrum.
 
 ## Required Inputs
 
@@ -35,6 +37,8 @@ All commands below are intended to run from the repository root:
    - `data/input/PATIENTS.csv`
    - `data/input/DIAGNOSES_ICD.csv`
    - `data/input/D_ICD_DIAGNOSES.csv`
+- Optional, needed only for real-data alignment and evaluation:
+   - `data/input/real_mimic.csv` (user-prepared flat MIMIC extract)
 
 ## Setup
 
@@ -69,7 +73,7 @@ Expected output files:
 - `data/processed/syn_full.csv`
 - `data/processed/syn_prior.csv`
 - `data/processed/syn_base.csv`
-- `data/processed/real_mimic.csv` (only if present in input source folder)
+- `data/processed/real_mimic.csv` (only if `data/input/real_mimic.csv` is present)
 
 ## Utility Evaluation
 
@@ -95,6 +99,14 @@ python src/evaluation/eval_utility_respiratory.py
 ```
 
 ## Fidelity Evaluation
+
+Fidelity metrics compare synthetic distributions against the real dataset:
+- **Categorical features** (LANGUAGE, RELIGION, MARITAL_STATUS, ETHNICITY, INSURANCE, HOSPITAL_EXPIRE_FLAG, MAIN_DIAGNOSIS): **Total Variation Distance (TVD)**.
+  TVD ∈ [0, 1]; lower is better.  KS is not used for nominal variables because its result depends on the arbitrary integer encoding order.
+- **Numeric/count features** (AGE, OTHER_ICD_COUNT, PROCEDURE_COUNT): **Kolmogorov–Smirnov statistic**.
+
+Output schema for `fidelity_ks.csv`:
+`dataset, feature, metric_type (TVD|KS), stat, pvalue`
 
 ```bash
 python src/evaluation/fidelity_ks.py \

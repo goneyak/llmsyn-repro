@@ -1,6 +1,6 @@
 {
   "mortality_rate": 0.1477833779057807,
-  "top100_icd9_path": "outputs/priors/top100_icd9_non_newborn.csv",
+  "top100_icd9_path": "data/priors/top100_icd9.csv",
   "demographics": {
     "LANGUAGE": {
       "ENGL": 0.5564184324213125,

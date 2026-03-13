@@ -28,7 +28,12 @@ REAL_train_REAL_test,0.958,0.0042,0.528,0.1639,4.5,3.0277
 
 ```
 
-## Fidelity - KS (mean across features)
+## Fidelity - KS/TVD (mean across features)
+
+> Note: the fidelity script has been updated to use **TVD** for categorical features
+> and **KS** for numeric features.  The values below were produced with the old
+> KS-on-encoded-integers approach and are retained for historical reference.
+> Re-run `fidelity_ks.py` to get updated TVD+KS results.
 
 ```
 dataset,KS_stat,KS_pvalue

@@ -1,31 +1,14 @@
-[Task] You are a clinical coding specialist responsible for assigning CPT procedure codes for a synthetic patient, given their demographics, main diagnosis, and comorbidities. Do NOT reference or recall any real patient data.
+Assign up to 6 ICD-9 procedure codes per patient based on their demographics, main diagnosis, and comorbidities.
+Use only publicly available clinical knowledge (e.g., Mayo Clinic). Do NOT use real patient data.
 
-[Input: Patient Context] Demographics: {response_1}
-Main Diagnosis (ICD-9): {response_2}
-Comorbidities (ICD-9 list): {response_3}
+Allowed ICD-9 procedure codes (reference list):
+{proc_master}
 
-[Retrieved / External Knowledge] {mayo_string} {cpt_master_string}
+Patient info CSV (includes demographics, MAIN_DIAGNOSIS, and COMORBIDITIES):
+{comorb_csv}
 
-[Prior Knowledge]
-Each patient typically receives 1–12 procedures during a hospital admission.
-Procedures must align with the diagnosis and comorbidities.
-CPT codes are 5-digit numeric identifiers for clinical services and procedures.
-Example categories:
-Radiology → Imaging, X-ray, CT, MRI
-Medicine → Cardiovascular, Pulmonary, Gastroenterology
-Surgery → General, Orthopedic, Neurosurgery
-Evaluation & Management → Critical care, inpatient visit
-Avoid unrealistic combinations (e.g., appendectomy for pneumonia).
-
-[Examples] Example 1: Input: Demographics: {{"age": 78, "ethnicity": "White", "hospital_expire_flag": 1}} Main Diagnosis: "428.0" (Congestive heart failure) Comorbidities: ["401.9", "250.00"] Retrieved Knowledge: “Heart failure treatment involves echocardiography, cardiac catheterization, and diuretic therapy.” Output: {{ "procedures": ["93306", "93451", "96375"] }}
-Example 2: Input: Demographics: {{"age": 50, "ethnicity": "Asian", "hospital_expire_flag": 0}} Main Diagnosis: "486" (Pneumonia) Comorbidities: ["518.81"] Retrieved Knowledge: “Pneumonia treatment may involve chest X-rays, oxygen therapy, and IV antibiotics.” Output: {{ "procedures": ["71020", "94640", "96365"] }}
-
-[Steps (Chain of Thought)]
-Review demographics, main diagnosis, and comorbidities.
-Identify possible procedures or tests from the retrieved knowledge.
-Select 1–12 CPT codes corresponding to these procedures.
-Ensure that procedures are clinically consistent with diagnoses and comorbidities.
-Output valid JSON containing only the key "procedures".
-
-[Output Format]
-{{"procedures": ["CPT_code_1", "CPT_code_2", ...]}}
+Output format: return ONLY a valid CSV with the same 100 rows.
+Columns (in this exact order): {proc_cols}
+Add the PROCEDURES column as a pipe-separated list of ICD-9 procedure codes (e.g. 9904|3323). Use an empty string if none.
+Avoid clinically implausible combinations (e.g., appendectomy for a patient with pneumonia).
+Do not include commentary or markdown fences.
