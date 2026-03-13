@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -19,14 +20,15 @@ def run_rf(name, X_train, y_train, X_test, y_test, seed):
 
 
 if __name__ == "__main__":
+    base_dir = Path(__file__).resolve().parents[2]
     seeds = list(range(10))
-    X_real = np.load("../outputs/eval/real_resp_X.npy")
-    y_real = np.load("../outputs/eval/real_resp_y.npy")
+    X_real = np.load(base_dir / "outputs" / "eval" / "real_resp_X.npy")
+    y_real = np.load(base_dir / "outputs" / "eval" / "real_resp_y.npy")
 
     syn_files = {
-        "syn_full": ("../outputs/eval/syn_full_resp_X.npy", "../outputs/eval/syn_full_resp_y.npy"),
-        "syn_prior": ("../outputs/eval/syn_prior_resp_X.npy", "../outputs/eval/syn_prior_resp_y.npy"),
-        "syn_base": ("../outputs/eval/syn_base_resp_X.npy", "../outputs/eval/syn_base_resp_y.npy"),
+        "syn_full": (base_dir / "outputs" / "eval" / "syn_full_resp_X.npy", base_dir / "outputs" / "eval" / "syn_full_resp_y.npy"),
+        "syn_prior": (base_dir / "outputs" / "eval" / "syn_prior_resp_X.npy", base_dir / "outputs" / "eval" / "syn_prior_resp_y.npy"),
+        "syn_base": (base_dir / "outputs" / "eval" / "syn_base_resp_X.npy", base_dir / "outputs" / "eval" / "syn_base_resp_y.npy"),
     }
 
     n_sample = 100
@@ -69,8 +71,8 @@ if __name__ == "__main__":
             rows.append(run_rf(f"DA_{name}_train_REALsub+SYN_test_REAL", X_da, y_da, X_test_real, y_test_real, seed))
 
     df = pd.DataFrame(rows)
-    df.to_csv("../outputs/eval/utility_respiratory_raw.csv", index=False)
+    df.to_csv(base_dir / "outputs" / "eval" / "utility_respiratory_raw.csv", index=False)
     agg = df.groupby("name").agg(["mean", "std"])
     agg.columns = ["_".join(col) for col in agg.columns]
     agg = agg.reset_index()
-    agg.to_csv("../outputs/eval/utility_respiratory_summary.csv", index=False)
+    agg.to_csv(base_dir / "outputs" / "eval" / "utility_respiratory_summary.csv", index=False)

@@ -1,18 +1,19 @@
-import os
 import json
+from pathlib import Path
+
 import pandas as pd
-import numpy as np
 
 # ---------- PATH ----------
-MIMIC_PATH = os.path.expanduser("~/llmsyn-repro/data/input")
-OUT_DIR = os.path.expanduser("~/llmsyn-repro/data/priors")
-os.makedirs(OUT_DIR, exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parents[2]
+MIMIC_PATH = BASE_DIR / "data" / "input"
+OUT_DIR = BASE_DIR / "data" / "priors"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ---------- LOAD ----------
-admissions = pd.read_csv(os.path.join(MIMIC_PATH, "ADMISSIONS.csv"), low_memory=False)
-patients   = pd.read_csv(os.path.join(MIMIC_PATH, "PATIENTS.csv"), low_memory=False)
-diagnoses  = pd.read_csv(os.path.join(MIMIC_PATH, "DIAGNOSES_ICD.csv"), low_memory=False)
-icd_diag   = pd.read_csv(os.path.join(MIMIC_PATH, "D_ICD_DIAGNOSES.csv"), low_memory=False)
+admissions = pd.read_csv(MIMIC_PATH / "ADMISSIONS.csv", low_memory=False)
+patients = pd.read_csv(MIMIC_PATH / "PATIENTS.csv", low_memory=False)
+diagnoses = pd.read_csv(MIMIC_PATH / "DIAGNOSES_ICD.csv", low_memory=False)
+icd_diag = pd.read_csv(MIMIC_PATH / "D_ICD_DIAGNOSES.csv", low_memory=False)
 
 # ---------- Pre-processing ----------
 admissions["ADMITTIME"] = pd.to_datetime(admissions["ADMITTIME"], errors="coerce", utc=True).dt.tz_localize(None)
@@ -84,19 +85,19 @@ icd_counts = diagnoses["ICD9_CODE"].value_counts().head(100).reset_index()
 icd_counts.columns = ["ICD9_CODE", "COUNT"]
 icd_counts = icd_counts.merge(icd_diag[["ICD9_CODE", "LONG_TITLE"]], on="ICD9_CODE", how="left")
 
-icd_path = os.path.join(OUT_DIR, "top100_icd9.csv")
+icd_path = OUT_DIR / "top100_icd9.csv"
 icd_counts.to_csv(icd_path, index=False)
 
 # ---------- PRIOR JSON ----------
 prior = {
     "mortality_rate": compute_mortality(admissions),
-    "top100_icd9_path": icd_path,
+    "top100_icd9_path": str(icd_path),
     "demographics": compute_demo(demo),
     "cohort": "no_newborn_filter_first_admission",
 }
 
-out_file = os.path.join(OUT_DIR, "prior.json")
-with open(out_file, "w") as f:
+out_file = OUT_DIR / "prior.json"
+with open(out_file, "w", encoding="utf-8") as f:
     json.dump(prior, f, indent=2)
 
 print(f"[OK] Saved: {out_file}")

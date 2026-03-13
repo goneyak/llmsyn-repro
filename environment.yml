@@ -9,4 +9,4 @@ dependencies:
       - pandas
       - matplotlib
 variables:
-  OPENAI_API_KEY: ""  # set your OpenAI API key before running generation notebook
+  OPENAI_API_KEY: ""  # set your OpenAI API key before running generation scripts

@@ -1,6 +1,8 @@
 import os
 import ast
 import argparse
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -13,9 +15,9 @@ def parse_args():
         action="append",
         required=True,
         metavar="NAME=PATH",
-        help="Synthetic dataset entry (repeatable). ex) --dataset syn_full=../data/input_processed/syn_full.csv",
+        help="Synthetic dataset entry (repeatable). ex) --dataset syn_full=data/processed/syn_full.csv",
     )
-    p.add_argument("--out-dir", default="../outputs/eval")
+    p.add_argument("--out-dir", default="outputs/eval")
     p.add_argument("--sigma", type=float, default=1.0, help="Gaussian kernel sigma")
     p.add_argument("--sample-size", type=int, default=None, help="Optional max rows to sample per dataset before MMD")
     p.add_argument("--seed", type=int, default=42, help="Random seed for sampling")
@@ -76,21 +78,31 @@ def mmd2_gaussian(X, Y, sigma=1.0):
 
 def main():
     args = parse_args()
-    os.makedirs(args.out_dir, exist_ok=True)
+    base_dir = Path(__file__).resolve().parents[2]
+    out_dir = Path(args.out_dir)
+    if not out_dir.is_absolute():
+        out_dir = base_dir / out_dir
+    os.makedirs(out_dir, exist_ok=True)
     rng = np.random.RandomState(args.seed)
 
     datasets = {}
     for item in args.dataset:
         name, path = item.split("=", 1)
-        datasets[name.strip()] = path.strip()
+        path_obj = Path(path.strip())
+        if not path_obj.is_absolute():
+            path_obj = base_dir / path_obj
+        datasets[name.strip()] = path_obj
 
-    real_df = pd.read_csv(args.real_path, low_memory=False)
+    real_path = Path(args.real_path)
+    if not real_path.is_absolute():
+        real_path = base_dir / real_path
+    real_df = pd.read_csv(real_path, low_memory=False)
     if args.sample_size is not None and len(real_df) > args.sample_size:
         real_df = real_df.sample(n=args.sample_size, random_state=rng)
 
     mmd_rows = []
     for name, path in datasets.items():
-        if not os.path.exists(path):
+        if not path.exists():
             continue
 
         syn_df = pd.read_csv(path, low_memory=False)
@@ -137,7 +149,7 @@ def main():
                 }
             )
 
-    out_csv = os.path.join(args.out_dir, "fidelity_mmd.csv")
+    out_csv = out_dir / "fidelity_mmd.csv"
     if mmd_rows:
         pd.DataFrame(mmd_rows).to_csv(out_csv, index=False)
 

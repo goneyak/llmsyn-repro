@@ -1,6 +1,8 @@
 import os
 import ast
 import argparse
+from pathlib import Path
+
 import pandas as pd
 from scipy.stats import ks_2samp
 
@@ -13,9 +15,9 @@ def parse_args():
         action="append",
         required=True,
         metavar="NAME=PATH",
-        help="Synthetic dataset entry (repeatable). ex) --dataset syn_full=../data/input_processed/syn_full.csv",
+        help="Synthetic dataset entry (repeatable). ex) --dataset syn_full=data/processed/syn_full.csv",
     )
-    p.add_argument("--out-dir", default="../outputs/eval")
+    p.add_argument("--out-dir", default="outputs/eval")
     return p.parse_args()
 
 
@@ -41,18 +43,28 @@ def count_list(col):
 
 def main():
     args = parse_args()
-    os.makedirs(args.out_dir, exist_ok=True)
+    base_dir = Path(__file__).resolve().parents[2]
+    out_dir = Path(args.out_dir)
+    if not out_dir.is_absolute():
+        out_dir = base_dir / out_dir
+    os.makedirs(out_dir, exist_ok=True)
 
     datasets = {}
     for item in args.dataset:
         name, path = item.split("=", 1)
-        datasets[name.strip()] = path.strip()
+        path_obj = Path(path.strip())
+        if not path_obj.is_absolute():
+            path_obj = base_dir / path_obj
+        datasets[name.strip()] = path_obj
 
-    real_df = pd.read_csv(args.real_path, low_memory=False)
+    real_path = Path(args.real_path)
+    if not real_path.is_absolute():
+        real_path = base_dir / real_path
+    real_df = pd.read_csv(real_path, low_memory=False)
 
     ks_rows = []
     for name, path in datasets.items():
-        if not os.path.exists(path):
+        if not path.exists():
             continue
         syn_df = pd.read_csv(path, low_memory=False)
 
@@ -88,7 +100,7 @@ def main():
             ks_stat, p_val = ks_2samp(r_vals, s_vals)
             ks_rows.append({"dataset": name, "feature": col, "KS_stat": ks_stat, "KS_pvalue": p_val})
 
-    out_csv = os.path.join(args.out_dir, "fidelity_ks.csv")
+    out_csv = out_dir / "fidelity_ks.csv"
     if ks_rows:
         pd.DataFrame(ks_rows).to_csv(out_csv, index=False)
 

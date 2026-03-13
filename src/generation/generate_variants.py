@@ -136,7 +136,10 @@ def main():
         raise RuntimeError("OPENAI_API_KEY not set")
     client = OpenAI(api_key=api_key)
 
-    priors_text = '{ "mortality_rate": 0.14778, "demographics": { "LANGUAGE": { "ENGL": 0.56, "None": 0.36, "OTHER": 0.08 }, "RELIGION": { "CATHOLIC": 0.35, "NOT SPECIFIED": 0.21, "UNOBTAINABLE": 0.13, "PROTESTANT QUAKER": 0.12, "JEWISH": 0.09, "OTHER": 0.10 }, "MARITAL_STATUS": { "MARRIED": 0.48, "SINGLE": 0.24, "WIDOWED": 0.14, "None": 0.06, "DIVORCED": 0.06, "OTHER": 0.02 }, "ETHNICITY": { "WHITE": 0.70, "UNKNOWN/NOT SPECIFIED": 0.10, "BLACK/AFRICAN AMERICAN": 0.07, "HISPANIC OR LATINO": 0.02, "OTHER": 0.11 }, "INSURANCE": { "Medicare": 0.5254320098745114, "Private": 0.34712507714462043, "Medicaid": 0.0829818967290681, "Government": 0.030292120962764863, "Self Pay": 0.014168895289035179 }, "GENDER": { "M": 0.5656757868751285, "F": 0.4343242131248714 }, "AGE_BIN": { "65-79": 0.30636700267434686, "50-64": 0.270854762394569, "80+": 0.15104916683809916, "35-49": 0.1378060069944456, "18-34": 0.07398169101008023, "1-17": 0.059941370088459164 } } }'
+    prior_json_path = base_dir / "data" / "priors" / "prior.json"
+    if not prior_json_path.exists():
+        raise FileNotFoundError(f"Missing required prior file: {prior_json_path}")
+    priors_text = prior_json_path.read_text(encoding="utf-8")
 
     icd_top = (base_dir / "data" / "priors" / "top100_icd9.csv").read_text()
     proc_master = (base_dir / "data" / "input" / "D_ICD_PROCEDURES.csv").read_text()

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -19,16 +20,17 @@ def run_rf(name, X_train, y_train, X_test, y_test, seed):
 
 
 if __name__ == "__main__":
-    out_dir = "../outputs/eval"
+    base_dir = Path(__file__).resolve().parents[2]
+    out_dir = str(base_dir / "outputs" / "eval")
     os.makedirs(out_dir, exist_ok=True)
 
-    X_real = np.load("../outputs/eval/real_mortality_X.npy")
-    y_real = np.load("../outputs/eval/real_mortality_y.npy")
+    X_real = np.load(base_dir / "outputs" / "eval" / "real_mortality_X.npy")
+    y_real = np.load(base_dir / "outputs" / "eval" / "real_mortality_y.npy")
 
     syn_files = {
-        "syn_full": ("../outputs/eval/syn_full_mortality_X.npy", "../outputs/eval/syn_full_mortality_y.npy"),
-        "syn_base": ("../outputs/eval/syn_base_mortality_X.npy", "../outputs/eval/syn_base_mortality_y.npy"),
-        "syn_prior": ("../outputs/eval/syn_prior_mortality_X.npy", "../outputs/eval/syn_prior_mortality_y.npy"),
+        "syn_full": (base_dir / "outputs" / "eval" / "syn_full_mortality_X.npy", base_dir / "outputs" / "eval" / "syn_full_mortality_y.npy"),
+        "syn_base": (base_dir / "outputs" / "eval" / "syn_base_mortality_X.npy", base_dir / "outputs" / "eval" / "syn_base_mortality_y.npy"),
+        "syn_prior": (base_dir / "outputs" / "eval" / "syn_prior_mortality_X.npy", base_dir / "outputs" / "eval" / "syn_prior_mortality_y.npy"),
     }
 
     seeds = list(range(10))

@@ -101,7 +101,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--input",
-        default="../data/input_processed/real_mimic.csv",
+        default="data/processed/real_mimic.csv",
         help="Input flat CSV (real or synthetic)",
     )
     parser.add_argument(
